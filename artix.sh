@@ -1,7 +1,7 @@
 #!/bin/bash
 
 name="art"
-read -p "change name different than arch? [y/n]" answer
+read -p "change name different than art? [y/n]" answer
 if [[ $answer = y ]] ; then
 	echo "name: "
 	read name
