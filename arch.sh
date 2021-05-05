@@ -24,7 +24,7 @@ echo "::1       localhost" >> /mnt/etc/hosts
 echo "127.0.1.1 $name.localdomain $name" >> /mnt/etc/hosts
 echo "$name" > /mnt/etc/hostname
 
-arch-chroot /mnt useradd -m -G wheel -s /bin/bash wael
+arch-chroot /mnt useradd -m -s /bin/bash wael
 echo "wael ALL=(ALL) ALL" >> /mnt/etc/sudoers.d/wael
 arch-chroot /mnt passwd wael
 arch-chroot /mnt passwd
