@@ -24,4 +24,5 @@ DIR = $(pwd)
 cp -v $DIR/root/etc /mnt/etc
 cp -v $DIR/root/boot /mnt/boot
 arch-chroot /mnt locale-gen
+arch-chroot /mnt mkinitcpio -P linux
 
