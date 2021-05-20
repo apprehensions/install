@@ -15,13 +15,13 @@ pacstrap /mnt linux linux-firmware linux-headers base intel-ucode networkmanager
 genfstab -U /mnt >> /mnt/etc/fstab
 
 arch-chroot /mnt bootctl install
-UUID = $(blkid -s UUID -o value $ROOT)
-echo "options rw cryptdevice=UUID=$UUID:croot root=/dev/mapper/croot" >> /mnt/boot/loader/entries/arch.conf
 ln -sf /mnt/usr/share/zoneinfo/Asia/Riyadh /mnt/etc/localtime
 arch-chroot /mnt timedatectl set-ntp true && hwclock --systohc
 arch-chroot /mnt useradd -m -s /bin/bash wael
-cp -v root/etc /mnt/etc
-cp -v root/boot /mnt/boot
+cp -v -r root/etc /mnt/
+cp -v -r root/boot /mnt/
+UUID = $(blkid -s UUID -o value $ROOT)
+echo "options rw cryptdevice=UUID=$UUID:croot root=/dev/mapper/croot" >> /mnt/boot/loader/entries/arch.conf
 arch-chroot /mnt locale-gen
 arch-chroot /mnt mkinitcpio -P linux
 
