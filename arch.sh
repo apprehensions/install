@@ -20,9 +20,8 @@ echo "options rw cryptdevice=UUID=$UUID:croot root=/dev/mapper/croot" >> /mnt/bo
 ln -sf /mnt/usr/share/zoneinfo/Asia/Riyadh /mnt/etc/localtime
 arch-chroot /mnt timedatectl set-ntp true && hwclock --systohc
 arch-chroot /mnt useradd -m -s /bin/bash wael
-DIR = $(pwd)
-cp -v $DIR/root/etc /mnt/etc
-cp -v $DIR/root/boot /mnt/boot
+cp -v root/etc /mnt/etc
+cp -v root/boot /mnt/boot
 arch-chroot /mnt locale-gen
 arch-chroot /mnt mkinitcpio -P linux
 
