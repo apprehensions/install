@@ -21,7 +21,7 @@ if [[ $HOST = pc ]] ; then
 	mkfs.ext4 $ROOT
 	mkfs.vfat $ESP
 	mount $ROOT /mnt
-fi
+
 
 mkdir /mnt/boot
 mount $ESP /mnt/boot
@@ -55,9 +55,9 @@ if [[ $HOST = pc ]] ; then
 fi
 
 arch-chroot /mnt git nano \ 
-				 acpid acpi \ 
-				 alsa-utils pulseaudio pulseaudio-alsa \ 
-				 xorg xorg-xinit xclip \ 
+		 acpid acpi \ 
+		 alsa-utils pulseaudio pulseaudio-alsa \ 
+		 xorg xorg-xinit xclip \ 
 arch-chroot /mnt mkinitcpio -P linux
 arch-chroot /mnt timedatectl set-ntp true && hwclock --systohc
 arch-chroot /mnt useradd -m -s /bin/bash wael
