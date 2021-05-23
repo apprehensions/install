@@ -54,10 +54,10 @@ if [[ $HOST = pc ]] ; then
 	pacstrap /mnt dhcpcd
 fi
 
-arch-chroot /mnt git nano \ 
-		 acpid acpi \ 
-		 alsa-utils pulseaudio pulseaudio-alsa \ 
-		 xorg xorg-xinit xclip \ 
+arch-chroot /mnt pacman -Syu git nano \ 
+		 	     acpid acpi \ 
+		             alsa-utils pulseaudio pulseaudio-alsa \ 
+	                     xorg xorg-xinit xclip \ 
 arch-chroot /mnt mkinitcpio -P linux
 arch-chroot /mnt timedatectl set-ntp true && hwclock --systohc
 arch-chroot /mnt useradd -m -s /bin/bash wael
