@@ -14,18 +14,16 @@ if [[ $HOST = laptop ]] ; then
 	cryptsetup open $ROOT croot
 	mkfs.ext4 /dev/mapper/croot
 	mount /dev/mapper/croot /mnt
-
 fi
 
 if [[ $HOST = pc ]] ; then
 	mkfs.ext4 $ROOT
 	mkfs.vfat $ESP
 	mount $ROOT /mnt
-
+fi
 
 mkdir /mnt/boot
 mount $ESP /mnt/boot
-	
 pacstrap /mnt linux linux-firmware linux-headers base base-devel intel-ucode 
 genfstab -U /mnt >> /mnt/etc/fstab
 arch-chroot /mnt bootctl install
@@ -62,8 +60,5 @@ arch-chroot /mnt mkinitcpio -P linux
 arch-chroot /mnt timedatectl set-ntp true && hwclock --systohc
 arch-chroot /mnt useradd -m -s /bin/bash wael
 arch-chroot /mnt locale-gen
-
 passwd 
 passwd wael
-
-# 69 lines. nice.
