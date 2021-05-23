@@ -45,13 +45,13 @@ echo "127.0.1.1 $NAME.localdomain $NAME" >> /etc/hosts
 if [[ $HOST = laptop ]] ; then
 	echo "options rw cryptdevice=UUID=$UUID:croot root=/dev/mapper/croot" >> /mnt/boot/loader/entries/arch.conf
 	pacstrap /mnt sof-firmware mesa xf86-video-intel alsa-ucm-conf networkmanager
-	arch-chroot /mnt systemctl enable NetworkManager
 	cp -v -r root/etc/modprobe.d /mnt/etc/
 	cp -v -r root/etc/mkinitcpio.conf /mnt/etc/
 fi
 
 if [[ $HOST = pc ]] ; then
 	echo "options rw root=UUID=$UUID" >> /mnt/boot/loader/entries/arch.conf
+	pacstrap /mnt dhcpcd
 fi
 
 arch-chroot /mnt git nano \ 
