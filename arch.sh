@@ -1,64 +1,65 @@
 #!/bin/bash
 
-echo "root: "
-read ROOT
-echo "esp: "
-read ESP
-echo "host: "
-read HOST
-echo "hostname: "
-read NAME
+echo "root > "
+read root
+echo "host > "
+read host
+echo "hostname > "
+read name
 
 if [[ $HOST = laptop ]] ; then	
 	cryptsetup luksFormat $ROOT
 	cryptsetup open $ROOT croot
-	mkfs.ext4 /dev/mapper/croot
-	mount /dev/mapper/croot /mnt
+	mkfs.btrfs -f /dev/mapper/croot
+	mount -o compress=zstd /dev/mapper/croot /mnt
+	btrfs subvolume create /mnt/@
+	btrfs subvolume create /mnt/@home
+	umount -R /mnt
+	mount -o compress=zstd,subvol=/@ /dev/mapper/croot /mnt
+	mkdir /mnt/home
+	mount -o compress=zstd,subvol=/@home /dev/mapper/croot /mnt
 fi
 
-if [[ $HOST = pc ]] ; then
-	mkfs.ext4 $ROOT
-	mkfs.vfat $ESP
-	mount $ROOT /mnt
+read -p "esp format? [y/n]" answer
+
+if [[ $answer = y ]] ; then
+  echo "esp: "
+  read esp
+  mkfs.vfat -F 32 $esp
+fi
+
+if [[ $answer = n ]] ; then
+  echo "esp: "
+  read esp
 fi
 
 mkdir /mnt/boot
-mount $ESP /mnt/boot
-pacstrap /mnt linux linux-firmware linux-headers base base-devel intel-ucode 
+mount $esp /mnt/boot
+pacstrap /mnt linux linux-firmware linux-headers base base-devel intel-ucode btrfs-progs sof-firmware xf86-video-intel mesa
 genfstab -U /mnt >> /mnt/etc/fstab
 arch-chroot /mnt bootctl install
-ln -sf /mnt/usr/share/zoneinfo/Asia/Riyadh /mnt/etc/localtime
-UUID = $(blkid -s UUID -o value $ROOT)
 cp -v -r root/etc/sudoers.d /mnt/etc/
 cp -v -r root/etc/systemd /mnt/etc/
-cp -v -r root/etc/locale.conf /mnt/etc/ 
-cp -v -r root/etc/locale.gen /mnt/etc/
+echo "LANG=en_us.UTF-8" > /etc/locale.conf
+echo "en_us.UTF-8 UTF-8" > /etc/locale.gen
 cp -v -r root/boot /mnt/
-echo $NAME > /mnt/etc/hostname
+echo $name > /mnt/etc/hostname
 echo > /mnt/etc/issue
 echo "127.0.0.1 localhost" > /etc/hosts
 echo "::1       localhost" >> /etc/hosts
-echo "127.0.1.1 $NAME.localdomain $NAME" >> /etc/hosts
+echo "127.0.1.1 $name.localdomain $name" >> /etc/hosts
 
 if [[ $HOST = laptop ]] ; then
-	echo "options rw cryptdevice=UUID=$UUID:croot root=/dev/mapper/croot" >> /mnt/boot/loader/entries/arch.conf
-	pacstrap /mnt sof-firmware mesa xf86-video-intel alsa-ucm-conf networkmanager
-	cp -v -r root/etc/modprobe.d /mnt/etc/
-	cp -v -r root/etc/mkinitcpio.conf /mnt/etc/
+	echo "options rw cryptdevice=$root:croot:allow-discards root=/dev/mapper/croot rootflags=subvol=@" >> /mnt/boot/loader/entries/arch.conf
+	echo "blacklist elan_i2c" > /mnt/modprobe.d/blacklist.conf
 fi
 
-if [[ $HOST = pc ]] ; then
-	echo "options rw root=UUID=$UUID" >> /mnt/boot/loader/entries/arch.conf
-	pacstrap /mnt dhcpcd
-fi
-
-arch-chroot /mnt pacman -Syu git nano \ 
-		 	     acpid acpi \ 
-		             alsa-utils pulseaudio pulseaudio-alsa \ 
-	                     xorg xorg-xinit xclip \ 
 arch-chroot /mnt mkinitcpio -P linux
-arch-chroot /mnt timedatectl set-ntp true && hwclock --systohc
+arch-chroot /mnt timedatectl set-ntp true
+arch-chroot /mnt timedatectl set-timezone Asia/Riyadh
 arch-chroot /mnt useradd -m -s /bin/bash wael
 arch-chroot /mnt locale-gen
 passwd 
 passwd wael
+
+# https://github.com/Bugswriter/arch-linux-magic/blob/master/arch_install.sh
