@@ -33,7 +33,6 @@ genfstab -U /mnt >> /mnt/etc/fstab
 arch-chroot /mnt bootctl install
 cp -v -r root/etc/systemd /mnt/etc/
 echo $name > /mnt/etc/hostname
-echo > /mnt/etc/issue
 echo "127.0.0.1 localhost" > /etc/hosts
 echo "::1       localhost" >> /etc/hosts
 echo "127.0.1.1 $name.localdomain $name" >> /etc/hosts
