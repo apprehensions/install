@@ -19,7 +19,7 @@ mount -o compress=zstd,subvol=/@home /dev/mapper/croot /mnt
 mkdir /mnt/boot
 mount $esp /mnt/boot
 
-pacstrap /mnt linux linux-firmware linux-headers base base-devel intel-ucode btrfs-progs nvidia
+pacstrap /mnt linux linux-firmware linux-headers base base-devel intel-ucode btrfs-progs nvidia zsh
 genfstab -U /mnt >> /mnt/etc/fstab
 arch-chroot /mnt bootctl install
 cp -v -r root/etc/systemd /mnt/etc/
