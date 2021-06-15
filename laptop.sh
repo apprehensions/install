@@ -1,12 +1,8 @@
 #!/bin/bash
-# these are literally made for me, please never use this unless you are wael
 
 echo "root: "
 read root
-echo "host: "
-read host
-echo "hostname: "
-read name
+name="yoga"
 echo "esp: "
 read esp
 
@@ -28,10 +24,9 @@ read -p "esp format? [y/n]" answer
 mkdir /mnt/boot
 mount $esp /mnt/boot
 
-pacstrap /mnt linux linux-firmware linux-headers base base-devel intel-ucode btrfs-progs sof-firmware xf86-video-intel mesa zsh
+pacstrap /mnt linux linux-firmware linux-headers base base-devel intel-ucode btrfs-progs sof-firmware xf86-video-intel mesa zsh xorg xorg-xinit xclip iwd
 genfstab -U /mnt >> /mnt/etc/fstab
-arch-chroot /mnt bootctl install
-cp -v -r root/etc/systemd /mnt/etc/
+cp -v -r root/etc /mnt/etc
 echo $name > /mnt/etc/hostname
 echo "127.0.0.1 localhost" > /etc/hosts
 echo "::1       localhost" >> /etc/hosts
@@ -41,12 +36,24 @@ echo "LANG=en_us.UTF-8" > /etc/locale.conf
 echo "en_us.UTF-8 UTF-8" > /etc/locale.gen
 echo ""boot" "rw cryptdevice=$root:croot:allow-discards root=/dev/mapper/croot rootflags=subvol=@"" >> /mnt/boot/refind_linux.conf
 echo "blacklist elan_i2c" > /mnt/modprobe.d/blacklist.conf
-arch-chroot /mnt mkinitcpio -P linux
-arch-chroot /mnt timedatectl set-ntp true
-arch-chroot /mnt timedatectl set-timezone Asia/Riyadh
-arch-chroot /mnt useradd -m -s /bin/zsh wael
-arch-chroot /mnt locale-gen
-arch-chroot /mnt passwd wael
-arch-chroot /mnt passwd
 
 # https://github.com/Bugswriter/arch-linux-magic/blob/master/arch_install.sh
+sed '1,/^#part2$/d' arch_install.sh > /mnt/arch_install2.sh
+chmod +x /mnt/arch_install2.sh
+arch-chroot /mnt ./arch_install2.sh
+exit 
+
+#part2
+bootctl install
+mkinitcpio -P linux
+timedatectl set-ntp true
+timedatectl set-timezone Asia/Riyadh
+useradd -m -s /bin/zsh wael
+locale-gen
+systemctl enable reflector.timer
+systemctl enable fstrim.timer  
+systemctl enable sshd
+passwd wael
+passwd
+
+
