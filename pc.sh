@@ -1,5 +1,6 @@
 #!/bin/bash
 # https://github.com/Bugswriter/arch-linux-magic/blob/master/arch_install.sh
+# https://gitlab.com/eflinux/arch-basic/-/blob/master/install-uefi.sh
 name=br
 echo "root: "
 read root
@@ -27,7 +28,7 @@ echo "::1       localhost" >> /mnt/etc/hosts
 echo "127.0.1.1 $name.localdomain $name" >> /mnt/etc/hosts
 echo "wael ALL=(ALL) ALL" > /mnt/etc/sudoers.d/wael
 echo "LANG=en_us.UTF-8" > /mnt/etc/locale.conf
-echo "en_us.UTF-8 UTF-8" > /mnt/etc/locale.gen
+sed -i '177s/.//' /mnt/etc/locale.gen
 echo "options rw root=$root rootflags=subvol=@" >> /mnt/boot/loader/entries/arch.conf
 sed '1,/^#part2$/d' pc.sh > /mnt/pc-p2.sh
 chmod +x /mnt/arch_install2.sh
