@@ -7,11 +7,9 @@ echo "root: "
 read root
 echo "esp: "
 read esp
-echo "data: "
-read data
 
-mkfs.btrfs -f $root
-mkfs.vfat -F 32 $esp
+mkfs.btrfs -L arch -f $root
+mkfs.vfat -n GUMMI -F 32 $esp
 mount $root /mnt
 btrfs subvolume create /mnt/@
 btrfs subvolume set-default /mnt/@
@@ -19,22 +17,19 @@ umount -R /mnt
 mount -o compress=zstd,subvol=@ $root /mnt
 mkdir /mnt/boot
 mount $esp /mnt/boot
-mkdir /mnt/mnt
-mount $data /mnt
 
 pacstrap /mnt linux linux-firmware linux-headers base base-devel intel-ucode btrfs-progs nvidia 
 genfstab -U /mnt >> /mnt/etc/fstab
+# i am a very lazy person so, imm just moving instead of echoing (please don't do this at home)
 cp -v -r root/etc /mnt
 cp -v -r root/boot /mnt
-echo $name > /mnt/etc/hostname
-echo "127.0.0.1 localhost" > /mnt/etc/hosts
-echo "::1       localhost" >> /mnt/etc/hosts
-echo "127.0.1.1 $name.localdomain $name" >> /mnt/etc/hosts
-echo "wael ALL=(ALL) ALL" > /mnt/etc/sudoers.d/wael
-echo "LANG=en_us.UTF-8" > /mnt/etc/locale.conf
+# neither do i know how to use sed
 sed -i '177s/.//' /mnt/etc/locale.gen
-echo "options rw root=$root rootflags=subvol=@" >> /mnt/boot/loader/entries/arch.conf
-sed '1,/^#part2$/d' pc.sh > /mnt/pc-p2.sh
+sed -i '33s/.//' /mnt/etc/pacman.conf
+sed -i '36s/.//' /mnt/etc/pacman.conf
+sed -i '37s/.//' /mnt/etc/pacman.conf
+sed -i '37s/5/6/' /etc/pacman.conf
+sed '1,/^#part2$/d' arch.sh > /mnt/part2.sh
 chmod +x /mnt/part2.sh
 arch-chroot /mnt ./part2.sh
 exit 
@@ -43,12 +38,11 @@ exit
 bootctl install
 timedatectl set-ntp true
 timedatectl set-timezone Asia/Riyadh
-pacman -S git wget zsh
+pacman -S git wget zsh nvidia-settings neofetch
 useradd -m -s /bin/zsh wael
 locale-gen
-git clone https://aur.archlinux.org/paru.git /usr/src/paru
+git clone https://aur.archlinux.org/paru.git /usr/src/paru && chmod 777 /usr/src/paru
 systemctl enable systemd-networkd
-systemctl enable reflector.timer
 systemctl enable fstrim.timer  
 systemctl enable sshd
 passwd wael && passwd
