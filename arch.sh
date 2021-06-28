@@ -2,12 +2,12 @@
 
 # partitioning simulator
 fdisk -l
-echo "drive: "
+echo "$(tput bold)drive: $(tput sgr0)"
 read drive
 cfdisk $drive
-echo "root partition: " 
+echo "$(tput bold)root partition: $(tput sgr0)" 
 read root
-echo "efi partition: "
+echo "$(tput bold)efi partition: $(tput sgr0)"
 read esp
 mkfs.btrfs -L arch -f $root
 mkfs.vfat -n EFI -F 32 $esp
@@ -22,7 +22,7 @@ pacstrap /mnt linux linux-firmware linux-headers base base-devel btrfs-progs
 genfstab -U /mnt >> /mnt/etc/fstab
 
 # name/hosts identification
-echo "hostname: "
+echo "$(tput bold)hostname: $(tput sgr0)"
 read hostname
 echo $name > /etc/hostname
 echo -e "127.0.0.1 localhost\n::1       localhost \n127.0.1.1 $hostname.localdomain $hostname" > /mnt/etc/hosts
@@ -48,7 +48,7 @@ exit
 
 # locales
 echo -e "LANG=en_US.UTF-8" > /mnt/etc/locale.conf
-sed -i '177s/.//' /mnt/etc/locale.gen
+sed -i '177s/.//' /etc/locale.gen
 locale-gen
 
 # timezone
@@ -61,13 +61,15 @@ hwclock --systohc
 
 # shit
 pacman --noconfirm -Syu git wget neofetch networkmanager
+systemctl enable NetworkManager
 
-echo "username: "
+# user password/creation
+echo -e "\n$(tput bold)username: $(tput sgr0)"
 read user
 useradd -m -G wheel -s /bin/bash $user
-systemctl enable NetworkManager
-echo "$(tput bold)$user password: "
+echo -e "\n$(tput bold)$user password: $(tput sgr0)"
 passwd $user 
-echo "$(tput bold)root password: "
+echo -e "\n$(tput bold)root password: $(tput sgr0)"
 passwd
+
 rm /part2.sh
