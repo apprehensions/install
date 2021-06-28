@@ -33,7 +33,7 @@ echo -e "timeout 5\nconsole-mode max" > /mnt/boot/loader/loader.conf
 sed -i '82s/. //' /mnt/etc/sudoers
 
 # enable parallel downloads & multilib repo (the stupid way) & refresh mirrors 
-sed -i -e '33,37s/.//' -e '93,94s/.//' /mnt/etc/pacman.conf
+sed -i -e '33s/.//' -e '37s/.//' -e '93,94s/.//' /mnt/etc/pacman.conf
 reflector --verbose --latest 5 --sort rate --save /mnt/etc/pacman.d/mirrorlist
 
 # locales
