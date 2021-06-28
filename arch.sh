@@ -22,8 +22,10 @@ pacstrap /mnt linux linux-firmware linux-headers base base-devel btrfs-progs
 genfstab -U /mnt >> /mnt/etc/fstab
 
 # name/hosts identification
+echo "hostname: "
+read hostname
 echo $name > /etc/hostname
-echo -e "127.0.0.1 localhost\n::1       localhost \n127.0.0.1 $hostname.localdomain $hostname" > /mnt/etc/hosts
+echo -e "127.0.0.1 localhost\n::1       localhost \n127.0.1.1 $hostname.localdomain $hostname" > /mnt/etc/hosts
 
 # bootloader
 arch-chroot /mnt bootctl install
@@ -64,8 +66,8 @@ echo "username: "
 read user
 useradd -m -G wheel -s /bin/bash $user
 systemctl enable NetworkManager
-echo "$user password: "
+echo "$(tput bold)$user password: "
 passwd $user 
-echo "root password: "
+echo "$(tput bold)root password: "
 passwd
 rm /part2.sh
