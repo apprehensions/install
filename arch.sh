@@ -39,37 +39,31 @@ sed -i '82s/. //' /mnt/etc/sudoers
 sed -i '33s/.//' /mnt/etc/pacman.conf && sed -i '37s/.//' /mnt/etc/pacman.conf && sed -i '93/.//' /mnt/etc/pacman.conf && sed -i '94/.//' /mnt/etc/pacman.conf
 reflector --verbose --latest 5 --sort rate --save /mnt/etc/pacman.d/mirrorlist
 
-sed '1,/^#part2$/d' arch.sh > /mnt/part2.sh
-chmod +x /mnt/part2.sh
-arch-chroot /mnt ./part2.sh
-exit 
-
-#part2
-
 # locales
 echo -e "LANG=en_US.UTF-8" > /mnt/etc/locale.conf
-sed -i '177s/.//' /etc/locale.gen
-locale-gen
+sed -i '177s/.//' /mnt/etc/locale.gen
+arch-chroot /mnt locale-gen
 
 # timezone
 timedatectl list-timezones
 echo "timezone: "
 read timezone
-timedatectl set-ntp true
-timedatectl set-timezone $timezone
+arch-chroot /mnt timedatectl set-ntp true
+arch-chroot /mnt timedatectl set-timezone $timezone
 hwclock --systohc
 
 # shit
-pacman --noconfirm -Syu git wget neofetch networkmanager
-systemctl enable NetworkManager
+arch-chroot /mnt pacman --noconfirm -Syu git wget neofetch networkmanager
+arch-chroot /mnt systemctl enable NetworkManager
 
 # user password/creation
 echo -e "\n$(tput bold)username: $(tput sgr0)"
 read user
-useradd -m -G wheel -s /bin/bash $user
+arch-chroot /mnt useradd -m -G wheel -s /bin/bash $user
 echo -e "\n$(tput bold)$user password: $(tput sgr0)"
-passwd $user 
+arch-chroot /mnt passwd $user 
 echo -e "\n$(tput bold)root password: $(tput sgr0)"
-passwd
+arch-chroot /mnt passwd
 
-rm /part2.sh
+
+# 69 lines. nice.
