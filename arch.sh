@@ -12,11 +12,10 @@ mkdir /mnt/boot
 mount $esp /mnt/boot
 
 # enable parallel downloads (the stupid way)
-cp /etc/pacman.conf /etc/pacman.conf.old
-sed -i '37s/.//' /etc/pacman.conf && sed -i '37s/5/10/' /etc/pacman.conf
+sed -ibak -e '37s/.//' -e '37s/5/10/' /etc/pacman.conf
 pacman --noconfirm -Sy archlinux-keyring
 pacstrap /mnt linux linux-firmware linux-headers base base-devel btrfs-progs
-cp /etc/pacman.conf.old /etc/pacman.conf
+cp /etc/pacman.confbak /etc/pacman.conf
 genfstab -U /mnt >> /mnt/etc/fstab
 
 # name/hosts identification
@@ -34,7 +33,7 @@ echo -e "timeout 5\nconsole-mode max" > /mnt/boot/loader/loader.conf
 sed -i '82s/. //' /mnt/etc/sudoers
 
 # enable parallel downloads & multilib repo (the stupid way) & refresh mirrors 
-sed -i '33,37s/.//' /mnt/etc/pacman.conf && sed -i '93,94s/.//' /mnt/etc/pacman.conf
+sed -i -e '33,37s/.//' -e '93,94s/.//' /mnt/etc/pacman.conf
 reflector --verbose --latest 5 --sort rate --save /mnt/etc/pacman.d/mirrorlist
 
 # locales
