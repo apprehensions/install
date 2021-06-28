@@ -1,10 +1,6 @@
 #!/bin/bash
 
 # partitioning simulator
-fdisk -l
-echo "$(tput bold)drive: $(tput sgr0)"
-read drive
-cfdisk $drive
 echo "$(tput bold)root partition: $(tput sgr0)" 
 read root
 echo "$(tput bold)efi partition: $(tput sgr0)"
@@ -16,27 +12,29 @@ mkdir /mnt/boot
 mount $esp /mnt/boot
 
 # enable parallel downloads (the stupid way)
+cp /etc/pacman.conf /etc/pacman.conf.old
 sed -i '37s/.//' /etc/pacman.conf && sed -i '37s/5/10/' /etc/pacman.conf
 pacman --noconfirm -Sy archlinux-keyring
 pacstrap /mnt linux linux-firmware linux-headers base base-devel btrfs-progs
+cp /etc/pacman.conf.old /etc/pacman.conf
 genfstab -U /mnt >> /mnt/etc/fstab
 
 # name/hosts identification
 echo "$(tput bold)hostname: $(tput sgr0)"
 read hostname
-echo $name > /etc/hostname
+echo $name > /mnt/etc/hostname
 echo -e "127.0.0.1 localhost\n::1       localhost \n127.0.1.1 $hostname.localdomain $hostname" > /mnt/etc/hosts
 
-# bootloader
+# bootloader (systemd-boot)
 arch-chroot /mnt bootctl install
 echo -e "title   Arch Linux\nlinux   /vmlinuz-linux\ninitrd  /initramfs-linux.img\noptions rw root=$root" > /mnt/boot/loader/entries/arch.conf
 echo -e "timeout 5\nconsole-mode max" > /mnt/boot/loader/loader.conf
 
-# sudoers
+# enable group wheel to access sudo
 sed -i '82s/. //' /mnt/etc/sudoers
 
-# enable parallel downloads & multilib repo & refresh mirrors by speed
-sed -i '33s/.//' /mnt/etc/pacman.conf && sed -i '37s/.//' /mnt/etc/pacman.conf && sed -i '93/.//' /mnt/etc/pacman.conf && sed -i '94/.//' /mnt/etc/pacman.conf
+# enable parallel downloads & multilib repo (the stupid way) & refresh mirrors 
+sed -i '33,37s/.//' /mnt/etc/pacman.conf && sed -i '93,94s/.//' /mnt/etc/pacman.conf
 reflector --verbose --latest 5 --sort rate --save /mnt/etc/pacman.d/mirrorlist
 
 # locales
@@ -45,12 +43,11 @@ sed -i '177s/.//' /mnt/etc/locale.gen
 arch-chroot /mnt locale-gen
 
 # timezone
-timedatectl list-timezones
-echo "timezone: "
+echo "$(tput bold)timezone: $(tput sgr0)"
 read timezone
 arch-chroot /mnt timedatectl set-ntp true
 arch-chroot /mnt timedatectl set-timezone $timezone
-hwclock --systohc
+arch-chroot /mnt hwclock --systohc
 
 # shit
 arch-chroot /mnt pacman --noconfirm -Syu git wget neofetch networkmanager
@@ -66,4 +63,3 @@ echo -e "\n$(tput bold)root password: $(tput sgr0)"
 arch-chroot /mnt passwd
 
 umount -R /mnt
-# 69 lines. nice.
