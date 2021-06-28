@@ -27,8 +27,8 @@ echo -e "127.0.0.1 localhost\n::1       localhost \n127.0.0.1 $hostname.localdom
 
 # bootloader
 arch-chroot /mnt bootctl install
-echo -e "title   Arch Linux\nlinux   /vmlinuz-linux\ninitrd  /initramfs-linux.img\noptions rw root=$root" > /boot/loader/entries/arch.conf
-echo -e "timeout 5\nconsole-mode max" > /boot/loader/loader.conf
+echo -e "title   Arch Linux\nlinux   /vmlinuz-linux\ninitrd  /initramfs-linux.img\noptions rw root=$root" > /mnt/boot/loader/entries/arch.conf
+echo -e "timeout 5\nconsole-mode max" > /mnt/boot/loader/loader.conf
 
 # sudoers
 sed -i '82s/. //' /mnt/etc/sudoers
@@ -58,7 +58,7 @@ timedatectl set-timezone $timezone
 hwclock --systohc
 
 # shit
-pacman ---noconfirm -Syu git wget neofetch networkmanager
+pacman --noconfirm -Syu git wget neofetch networkmanager
 
 echo "username: "
 read user
