@@ -65,5 +65,5 @@ arch-chroot /mnt passwd $user
 echo -e "\n$(tput bold)root password: $(tput sgr0)"
 arch-chroot /mnt passwd
 
-
+umount -R /mnt
 # 69 lines. nice.
