@@ -19,10 +19,15 @@ cp /etc/pacman.confbak /etc/pacman.conf
 genfstab -U /mnt >> /mnt/etc/fstab
 
 # name/hosts identification
-echo "$(tput bold)hostname: $(tput sgr0)"
-read hostname
+echo -e "\n$(tput bold)hostname: $(tput sgr0)"
+read name
 echo $name > /mnt/etc/hostname
 echo -e "127.0.0.1 localhost\n::1       localhost \n127.0.1.1 $hostname.localdomain $hostname" > /mnt/etc/hosts
+
+# locales
+echo -e "LANG=en_US.UTF-8" > /mnt/etc/locale.conf
+sed -i '177s/.//' /mnt/etc/locale.gen
+arch-chroot /mnt locale-gen
 
 # bootloader (systemd-boot)
 arch-chroot /mnt bootctl install
@@ -31,15 +36,6 @@ echo -e "timeout 5\nconsole-mode max" > /mnt/boot/loader/loader.conf
 
 # enable group wheel to access sudo
 sed -i '82s/. //' /mnt/etc/sudoers
-
-# enable parallel downloads & multilib repo (the stupid way) & refresh mirrors 
-sed -i -e '33s/.//' -e '37s/.//' -e '93,94s/.//' /mnt/etc/pacman.conf
-reflector --verbose --latest 5 --sort rate --save /mnt/etc/pacman.d/mirrorlist
-
-# locales
-echo -e "LANG=en_US.UTF-8" > /mnt/etc/locale.conf
-sed -i '177s/.//' /mnt/etc/locale.gen
-arch-chroot /mnt locale-gen
 
 # timezone
 echo "$(tput bold)timezone: $(tput sgr0)"
@@ -52,6 +48,10 @@ arch-chroot /mnt hwclock --systohc
 arch-chroot /mnt pacman --noconfirm -Syu git wget neofetch networkmanager
 arch-chroot /mnt systemctl enable NetworkManager
 
+# enable parallel downloads & multilib repo (the stupid way) & refresh mirrors 
+sed -i -e '33s/.//' -e '37s/.//' -e '93,94s/.//' /mnt/etc/pacman.conf
+reflector --verbose --latest 5 --sort rate --save /mnt/etc/pacman.d/mirrorlist
+
 # user password/creation
 echo -e "\n$(tput bold)username: $(tput sgr0)"
 read user
@@ -62,3 +62,4 @@ echo -e "\n$(tput bold)root password: $(tput sgr0)"
 arch-chroot /mnt passwd
 
 umount -R /mnt
+reboot
