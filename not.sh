@@ -6,7 +6,7 @@ NAME=not
 sed -ibak -e '37s/.//' -e '37s/5/10/' /etc/pacman.conf
 pacman --noconfirm -Sy archlinux-keyring
 reflector --verbose --latest 5 --sort rate --save /etc/pacman.d/mirrorlist
-pacstrap /mnt linux linux-firmware linux-headers base base-devel btrfs-progs amd-ucode
+pacstrap /mnt linux linux-firmware linux-headers base base-devel btrfs-progs amd-ucode grub
 cp /etc/pacman.confbak /etc/pacman.conf
 genfstab -U /mnt >> /mnt/etc/fstab
 
@@ -24,6 +24,9 @@ arch-chroot /mnt hwclock --systohc
 sed -i -e '33s/.//' -e '37s/.//' -e '93,94s/.//' /mnt/etc/pacman.conf
 cp /etc/pacman.d/mirrorlist /mnt/etc/pacman.d/
 arch-chroot /mnt pacman --noconfirm -Syu git wget neofetch
+
+arch-chroot /mnt grub-install --target=i386-pc /dev/sda
+grub-mkconfig -o /boot/grub/grub.cfg
 
 echo -e "[Match]\nName=eno1\n\n[Network]\nDHCP=yes" > /mnt/etc/systemd/network/lan.network
 arch-chroot /mnt systemctl enable systemd-networkd
