@@ -26,7 +26,7 @@ cp /etc/pacman.d/mirrorlist /mnt/etc/pacman.d/
 arch-chroot /mnt pacman --noconfirm -Syu git wget neofetch
 
 arch-chroot /mnt grub-install --target=i386-pc /dev/sda
-grub-mkconfig -o /boot/grub/grub.cfg
+arch-chroot /mnt grub-mkconfig -o /boot/grub/grub.cfg
 
 echo -e "[Match]\nName=eno1\n\n[Network]\nDHCP=yes" > /mnt/etc/systemd/network/lan.network
 arch-chroot /mnt systemctl enable systemd-networkd
