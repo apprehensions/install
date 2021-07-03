@@ -22,7 +22,7 @@ genfstab -U /mnt >> /mnt/etc/fstab
 echo -e "\n$(tput bold)hostname: $(tput sgr0)"
 read name
 echo $name > /mnt/etc/hostname
-echo -e "127.0.0.1 localhost\n::1       localhost \n127.0.1.1 $hostname.localdomain $hostname" > /mnt/etc/hosts
+echo -e "127.0.0.1 localhost\n::1       localhost \n127.0.1.1 $name.localdomain $name" > /mnt/etc/hosts
 
 # locales
 echo -e "LANG=en_US.UTF-8" > /mnt/etc/locale.conf
