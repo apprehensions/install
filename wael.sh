@@ -36,7 +36,7 @@ exit
 locale-gen
 reflector --verbose --latest 5 --sort rate --save /etc/pacman.d/mirrorlist
 timedatectl set-ntp true
-timedatectl set-timezone Asia/Riyadh
+ln -sf /usr/share/zoneinfo/Asia/Riyadh /etc/localtime
 hwclock --systohc
 pacman --noconfirm -Syu git wget neofetch openssh 
 bootctl install
