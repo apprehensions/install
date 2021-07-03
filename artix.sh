@@ -1,11 +1,11 @@
 #!/bin/bash
 
-init=openrc
-
 echo "$(tput bold)root partition: $(tput sgr0)" 
 read root
 echo "$(tput bold)efi partition: $(tput sgr0)"
 read esp
+echo "$(tput bold)init: $(tput sgr0)"
+read init
 mkfs.btrfs -L artix -f $root
 mkfs.vfat -n EFI -F 32 $esp
 mount $root /mnt
@@ -27,7 +27,7 @@ sed -i '177s/.//' /mnt/etc/locale.gen
 artix-chroot /mnt locale-gen
 
 sed -i -e '33s/.//' -e '37s/.//' -e '93,94s/.//' /mnt/etc/pacman.conf
-artix-chroot /mnt pacman -S grub os-prober efibootmgr wget git networkmanager networkmanager-$init
+artix-chroot /mnt pacman --noconfirm -Sy grub os-prober efibootmgr wget git networkmanager networkmanager-$init
 artix-chroot /mnt grub-install --target=x86_64-efi --efi-directory=/efi --bootloader-id=grub
 artix-chroot /mnt grub-mkconfig -o /boot/grub/grub.cfg
 
@@ -44,3 +44,7 @@ echo -e "\n$(tput bold)$user password: $(tput sgr0)"
 artix-chroot /mnt passwd $user 
 echo -e "\n$(tput bold)root password: $(tput sgr0)"
 artix-chroot /mnt passwd
+
+artix-chroot /mnt
+umount -R /mnt
+reboot
