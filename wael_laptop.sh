@@ -1,7 +1,6 @@
 #!/bin/bash
 # https://gist.github.com/tobi-wan-kenobi/bff3af81eac27e210e1dc88ba660596e
 # https://gist.github.com/gbrlsnchs/9c9dc55cd0beb26e141ee3ea59f26e21
-# variables
 BTRFS_OPTS="rw,relatime,ssd,compress=zstd,space_cache,commit=120"
 REPO=https://alpha.de.repo.voidlinux.org/current
 XBPS_ARCH=x86_64
@@ -23,10 +22,10 @@ umount -R /mnt
 
 mount -o $BTRFS_OPTS,subvol=@ /dev/mapper/kroot /mnt
 mkdir -p /mnt/home
-mount -o $BTRFS_OPTS,subvol=@home /dev/mapper/kroot /mnt/home
 mkdir -p /mnt/.snaps
-mount -o $BTRFS_OPTS,subvol=@snaps /dev/mapper/kroot /mnt/.snaps
 mkdir -p /mnt/boot
+mount -o $BTRFS_OPTS,subvol=@home /dev/mapper/kroot /mnt/home
+mount -o $BTRFS_OPTS,subvol=@snaps /dev/mapper/kroot /mnt/.snaps
 mount -o rw,noatime $BOOT /mnt/boot
 
 mkdir -p /mnt/var/cache
