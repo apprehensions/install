@@ -1,50 +1,62 @@
 #!/bin/bash
+BTRFS_OPTS="rw,relatime,ssd,compress=zstd,space_cache,commit=120"
+ROOT="/dev/sda2"
+ESP="/dev/sda1"
+HOSTNAME="br"
 
-echo "$(tput bold)root partition: $(tput sgr0)" 
-read root
-echo "$(tput bold)efi partition: $(tput sgr0)"
-read esp
-echo "$(tput bold)init: $(tput sgr0)"
-read init
-mkfs.btrfs -L artix -f $root
-mkfs.vfat -n EFI -F 32 $esp
-mount $root /mnt
+mkfs.vfat -nBOOT -F32 $ESP
+mkfs.btrfs -L arch -f $ROOT
+mount -o $BTRFS_OPTS $ROOT /mnt
+btrfs subvolume create /mnt/@
+btrfs subvolume set-default /mnt/@
+umount -R /mnt
+
+mount -o $BTRFS_OPTS,subvol=@ $ROOT /mnt
 mkdir /mnt/efi
-mount $esp /mnt/efi
+mount -o rw,noatime $ESP /mnt/efi
 
-sed -ibak -e '37s/.//' -e '37s/5/10/' /etc/pacman.conf
-basestrap /mnt base base-devel linux linux-firmware btrfs-progs $init elogind-$init 
-cp /etc/pacman.confbak /etc/pacman.conf
+reflector --verbose --latest 5 --sort rate --save /etc/pacman.d/mirrorlist
+sed -ibak -e '37s/.//' -e '37s/5/20/' /etc/pacman.conf
+basestrap /mnt base base-devel linux linux-firmware linux-headers intel-ucode nvidia nvidia-settings btrfs-progs runit elogind-runit dhcpcd-runit
+mv /etc/pacman.confbak /etc/pacman.conf
+cp /etc/pacman.d/mirrorlist /mnt/etc/pacman.d/
 fstabgen -U /mnt >> /mnt/etc/fstab
 
-echo -e "\n$(tput bold)hostname: $(tput sgr0)"
-read name
-echo $name > /mnt/etc/hostname
-echo -e "127.0.0.1 localhost\n::1       localhost \n127.0.1.1 $name.localdomain $name" > /mnt/etc/hosts
-
-echo -e "LANG=en_US.UTF-8" > /mnt/etc/locale.conf
-sed -i '177s/.//' /mnt/etc/locale.gen
-artix-chroot /mnt locale-gen
-
-sed -i -e '33s/.//' -e '37s/.//' -e '93,94s/.//' /mnt/etc/pacman.conf
-artix-chroot /mnt pacman --noconfirm -Sy grub os-prober efibootmgr wget git networkmanager networkmanager-$init
-artix-chroot /mnt grub-install --target=x86_64-efi --efi-directory=/efi --bootloader-id=grub
-artix-chroot /mnt grub-mkconfig -o /boot/grub/grub.cfg
-
-echo "$(tput bold)timezone: $(tput sgr0)"
-read timezone
-ln -sf /mnt/usr/share/zoneinfo/$timezone /mnt/etc/localtime
-artix-chroot /mnt hwclock --systohc
-
-sed -i '82s/. //' /mnt/etc/sudoers
-echo -e "\n$(tput bold)username: $(tput sgr0)"
-read user
-artix-chroot /mnt useradd -m -G wheel -s /bin/bash $user
-echo -e "\n$(tput bold)$user password: $(tput sgr0)"
-artix-chroot /mnt passwd $user 
-echo -e "\n$(tput bold)root password: $(tput sgr0)"
-artix-chroot /mnt passwd
-
-artix-chroot /mnt
+sed '1,/^# - post$/d' $0 > /mnt/post.sh
+chmod a+x /mnt/post.sh
+arch-chroot /mnt ./post.sh
 umount -R /mnt
 reboot
+
+# - post
+
+# - locale
+echo "LANG=en_US.UTF-8" > /etc/locale.conf
+sed -i '177s/.//' /etc/locale.gen
+locale-gen
+
+# - time
+ln -sf /mnt/usr/share/zoneinfo/Asia/Riyadh /etc/localtime
+hwclock --systohc
+
+# - pacman shenanigans [multilib,paralell,color] & AUR helper
+sed -i -e '33s/.//' -e '37s/.//' -e '93,94s/.//' /etc/pacman.conf
+pacman --noconfirm -Sy grub os-prober efibootmgr wget git zsh zsh-syntax-highlighting
+git clone https://aur.archlinux.org/paru.git /usr/src/paru && chmod 777 /usr/src/paru
+
+# - network
+echo $HOSTNAME > /etc/hostname
+echo -e "nameserver 1.1.1.1\nnameserver 1.0.0.1" > /etc/resolv.conf
+echo -e "127.0.0.1 localhost\n::1       localhost \n127.0.1.1 $HOSTNAME.localdomain $HOSTNAME" > /etc/hosts
+ln -s /etc/runit/sv/dhcpcd /etc/runit/runsvdir/default/
+ln -s /etc/runit/sv/sshd /etc/runit/runsvdir/default/
+
+# - bootloader [GRUB, will change later]
+grub-install --target=x86_64-efi --efi-directory=/efi --bootloader-id='Artix Linux'
+grub-mkconfig -o /boot/grub/grub.cfg
+
+# - autologin tty1 & sudoers & make me :3
+sed -i "/GETTY_ARGS=/s/\"$/ --autologin wael&/" /etc/runit/sv/agetty-tty1/conf
+sed -i '82s/. //' /mnt/etc/sudoers
+useradd -mG wheel -s /bin/zsh wael
+passwd && passwd wael
