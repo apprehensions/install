@@ -1,13 +1,14 @@
 #!/bin/bash
 BTRFS_OPTS="rw,relatime,ssd,compress=zstd,space_cache,commit=120"
 HOSTNAME=yoga
-HOST=lp
+HOST=lp-ao
 ROOT="/dev/nvme0n1p2"
 ESP="/dev/nvme0n1p1"
 read PASS
+
 mkfs.vfat -nESP -F32 $ESP
-echo $PASS | cryptsetup -v luksFormat -s=512 $ROOT -d -
-echo $PASS | cryptsetup open $ROOT kroot -d -
+echo -n $PASS | cryptsetup -v luksFormat -s=512 $ROOT -d -
+echo -n $PASS | cryptsetup open $ROOT kroot -d -
 mkfs.btrfs -L kroot /dev/mapper/kroot
 mount -o $BTRFS_OPTS /dev/mapper/kroot /mnt
 mkdir /mnt/boot
@@ -23,22 +24,22 @@ cp ./modules /mnt/ -r
 chmod a+x /mnt/post.sh
 artix-chroot /mnt ./post.sh
 umount -R /mnt
+cryptsetup close kroot
 exit
 
 # - post
 
 ./modules/locale.sh
 ./modules/time.sh
+./modules/iden.sh
+./modules/grub.sh
+./modules/time.sh
+./modules/user.sh
+./modules/autologin.sh
 ./modules/pacman.sh
 pacman --noconfirm -Sy grub os-prober efibootmgr wget git zsh exa
-git clone https://aur.archlinux.org/paru.git /usr/src/paru && chmod 777 /usr/src/paru
-echo $HOSTNAME > /etc/hostname
 ln -sv /etc/runit/sv/dhcpcd /etc/runit/runsvdir/default/
-ln -sv /etc/runit/sv/dbus /etc/runit/runsvdir/default/
 ln -sv /etc/runit/sv/sshd /etc/runit/runsvdir/default/
 ln -sv /etc/runit/sv/iwd /etc/runit/runsvdir/default/
-./modules/grub.sh
-sed -i "/GETTY_ARGS=/s/\"$/ --autologin wael&/" /etc/runit/sv/agetty-tty1/conf
-sed -i '82s/. //' /etc/sudoers
-useradd -mG wheel,audio,video,kvm,storage -s /bin/zsh wael
-passwd && passwd wael
+rm /modules
+rm /post.sh
