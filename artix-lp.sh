@@ -15,7 +15,7 @@ mkdir /mnt/boot
 mount -o rw,noatime $ESP /mnt/boot
 
 sed -ibak -e '37s/.//' -e '37s/5/20/' /etc/pacman.conf
-basestrap /mnt base base-devel linux linux-firmware linux-headers intel-ucode btrfs-progs runit elogind-runit iwd-runit dhcpcd-runit artix-archlinux-support
+basestrap /mnt base base-devel linux linux-firmware linux-headers intel-ucode btrfs-progs runit elogind-runit iwd-runit dhcpcd-runit artix-archlinux-support grub os-prober efibootmgr
 mv /etc/pacman.confbak /etc/pacman.conf
 fstabgen -U /mnt >> /mnt/etc/fstab
 
@@ -29,15 +29,12 @@ exit
 
 # - post
 
-./modules/locale.sh
-./modules/time.sh
-./modules/iden.sh
-./modules/grub.sh
-./modules/time.sh
-./modules/user.sh
-./modules/autologin.sh
-./modules/pacman.sh
-pacman --noconfirm -Sy grub os-prober efibootmgr wget git zsh exa
+./modules/10-locale.sh
+./modules/20-time.sh
+./modules/21-iden.sh
+./modules/30-pacman.sh
+./modules/40-grub.sh
+./modules/99-user.sh
 ln -sv /etc/runit/sv/dhcpcd /etc/runit/runsvdir/default/
 ln -sv /etc/runit/sv/sshd /etc/runit/runsvdir/default/
 ln -sv /etc/runit/sv/iwd /etc/runit/runsvdir/default/
