@@ -34,9 +34,7 @@ exit
 ./modules/21-iden.sh
 ./modules/30-pacman.sh
 ./modules/40-grub.sh
+./modules/50-sv.sh
 ./modules/99-user.sh
-ln -sv /etc/runit/sv/dhcpcd /etc/runit/runsvdir/default/
-ln -sv /etc/runit/sv/sshd /etc/runit/runsvdir/default/
-ln -sv /etc/runit/sv/iwd /etc/runit/runsvdir/default/
 rm /modules
 rm /post.sh
