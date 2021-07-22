@@ -1,9 +1,10 @@
 #!/bin/bash
 BTRFS_OPTS="rw,relatime,ssd,compress=zstd,space_cache,commit=120"
-HOSTNAME=yoga
-HOST=lp-ao
 ROOT="/dev/nvme0n1p2"
 ESP="/dev/nvme0n1p1"
+export HOST=lp-ao
+export HOSTNAME=yoga
+
 read PASS
 
 mkfs.vfat -nESP -F32 $ESP
