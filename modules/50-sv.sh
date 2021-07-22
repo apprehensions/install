@@ -1,10 +1,10 @@
 # pc
 if [[ "$HOST" = "pc-as" ]] ; then
-  systemctl enable systemd-networkd
+	systemctl enable systemd-networkd
 fi
 
 if [[ "$HOST" = "pc-ao" ]] ; then
-	rc-service add service dhcpcd default
+	rc-update add dhcpcd default
 fi
 
 # laptop
@@ -15,6 +15,6 @@ if [[ "$HOST" = "lp-ar" ]] ; then
 fi
 
 if [[ "$HOST" = "lp-ao" ]] ; then
-	rc-service add service dhcpcd default
-	rc-service add service iwd default
+	rc-update add dhcpcd default
+	rc-update add iwd default
 fi

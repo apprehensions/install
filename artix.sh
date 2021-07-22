@@ -1,4 +1,5 @@
 #!/bin/bash
+set -x
 BTRFS_OPTS="rw,relatime,ssd,compress=zstd,space_cache,commit=120"
 ROOT="/dev/sda2"
 ESP="/dev/sda1"
@@ -12,7 +13,7 @@ mkdir /mnt/efi
 mount -o rw,noatime $ESP /mnt/efi
 
 sed -ibak -e '37s/.//' -e '37s/5/20/' /etc/pacman.conf
-basestrap /mnt base base-devel linux linux-firmware linux-headers intel-ucode nvidia nvidia-settings btrfs-progs openrc elogind-openrc dhcpcd-openrc
+basestrap /mnt base base-devel linux linux-firmware linux-headers intel-ucode nvidia nvidia-settings btrfs-progs openrc elogind-openrc dhcpcd-openrc artix-archlinux-support grub efibootmgr os-prober
 mv /etc/pacman.confbak /etc/pacman.conf
 fstabgen -U /mnt >> /mnt/etc/fstab
 
