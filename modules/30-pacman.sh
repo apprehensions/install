@@ -4,5 +4,5 @@ sed -i '93,94s/.//' /etc/pacman.conf
 echo -e "\n[extra]\nInclude = /etc/pacman.d/mirrorlist-arch" >> /etc/pacman.conf
 echo -e "\n[community]\nInclude = /etc/pacman.d/mirrorlist-arch" >> /etc/pacman.conf
 echo -e "\n[multilib]\nInclude = /etc/pacman.d/mirrorlist-arch" >> /etc/pacman.conf
-git clone https://aur.archlinux.org/paru.git /usr/src/paru && chmod 777 /usr/src/paru
 pacman --noconfirm -Sy wget git zsh exa
+git clone https://aur.archlinux.org/paru-bin.git /usr/src/paru-bin && chmod 777 /usr/src/paru-bin
