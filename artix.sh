@@ -33,3 +33,5 @@ exit
 ./modules/40-boot.sh
 ./modules/50-sv.sh
 ./modules/99-user.sh
+rm /modules -rf
+rm /post.sh

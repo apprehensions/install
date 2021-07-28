@@ -2,7 +2,7 @@
 BTRFS_OPTS="rw,relatime,ssd,compress=zstd,space_cache,commit=120"
 export ROOT="/dev/nvme0n1p2"
 ESP="/dev/nvme0n1p1"
-export HOST=lp-artix
+export HOST=lp_artix
 export HOSTNAME=yoga
 
 read PASS
