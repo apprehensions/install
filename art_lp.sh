@@ -2,7 +2,7 @@
 BTRFS_OPTS="rw,relatime,ssd,compress=zstd,space_cache,commit=120"
 export ROOT="/dev/nvme0n1p2"
 ESP="/dev/nvme0n1p1"
-export HOST=lp_art
+export HOST=art_lp
 export HOSTNAME=yoga
 
 mkfs.vfat -nBL -F32 $ESP
@@ -25,12 +25,12 @@ exit
 
 # - post
 
-./modules/10-locale.sh
-./modules/20-time.sh
-./modules/21-iden.sh
-./modules/30-pacman.sh
+./modules/10-needed.sh
+./modules/30-pkg.sh
+./modules/31-vid.sh
 ./modules/40-boot.sh
-./modules/50-sv.sh
+./modules/51-net.sh
 ./modules/99-user.sh
+rc-update add iwd default
 rm /modules -rf
 rm /post.sh

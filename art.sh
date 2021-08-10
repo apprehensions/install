@@ -3,7 +3,7 @@ set -x
 BTRFS_OPTS="rw,relatime,ssd,compress=zstd,space_cache,commit=120"
 ROOT="/dev/sda2"
 ESP="/dev/sda1"
-export HOST=pc-ao
+export HOST=art_pc
 export HOSTNAME=br
 
 mkfs.vfat -nESP -F32 $ESP
