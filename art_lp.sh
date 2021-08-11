@@ -1,15 +1,14 @@
 #!/bin/bash
-BTRFS_OPTS="rw,relatime,ssd,compress=zstd,space_cache,commit=120"
+export BTRFS_OPTS="rw,relatime,ssd,compress=zstd,space_cache,commit=120"
 export ROOT="/dev/nvme0n1p2"
-ESP="/dev/nvme0n1p1"
-export HOST=art_lp
+export ESP="/dev/nvme0n1p1"
+export DIST=artix
+export PLAT=lp
 export HOSTNAME=yoga
 
-mkfs.vfat -nBL -F32 $ESP
-mkfs.btrfs -L root -f $ROOT
-mount -o $BTRFS_OPTS $ROOT /mnt
-mkdir /mnt/boot
-mount -o rw,noatime $ESP /mnt/boot
+./modules/01-disk.sh
+mkdir /mnt/efi
+mount -o rw,noatime $ESP /mnt/efi
 
 sed -ibak -e '37s/.//' -e '37s/5/20/' /etc/pacman.conf
 basestrap /mnt base base-devel linux linux-firmware linux-headers intel-ucode btrfs-progs openrc elogind-openrc iwd-openrc dhcpcd-openrc artix-archlinux-support grub os-prober efibootmgr
@@ -25,11 +24,12 @@ exit
 
 # - post
 
+set -x
 ./modules/10-needed.sh
 ./modules/30-pkg.sh
 ./modules/31-vid.sh
 ./modules/40-boot.sh
-./modules/51-net.sh
+./modules/50-net.sh
 ./modules/99-user.sh
 rc-update add iwd default
 rm /modules -rf

@@ -7,8 +7,8 @@ export PLAT=lp
 export HOSTNAME=yoga
 
 ./modules/01-disk.sh
-mkdir /mnt/boot
-mount -o rw,noatime $ESP /mnt/boot
+mkdir /mnt/efi
+mount -o rw,noatime $ESP /mnt/efi
 
 sed -ibak -e '37s/.//' -e '37s/5/24/' /etc/pacman.conf
 basestrap /mnt base base-devel linux linux-firmware linux-headers intel-ucode btrfs-progs iwd
@@ -24,11 +24,12 @@ exit
 
 # - post
 
+set -x
 ./modules/10-needed.sh
 ./modules/30-pkg.sh
 ./modules/31-vid.sh
 ./modules/40-boot.sh
-./modules/51-net.sh
+./modules/50-net.sh
 ./modules/99-user.sh
 systemctl enable iwd
 rm /modules -rf
