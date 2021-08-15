@@ -2,11 +2,10 @@
 export BTRFS_OPTS="rw,relatime,ssd,compress=zstd,space_cache,commit=120"
 export ROOT="/dev/nvme0n1p2"
 export ESP="/dev/nvme0n1p1"
-export DIST=arch
-export PLAT=lp
 export HOSTNAME=yoga
+source ./mods
 
-./modules/01-disk.sh
+mkfs_part
 mkdir /mnt/efi
 mount -o rw,noatime $ESP /mnt/efi
 

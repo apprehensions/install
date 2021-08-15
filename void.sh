@@ -1,4 +1,4 @@
->#!/bin/bash
+#!/bin/bash
 BTRFS_OPTS="rw,relatime,ssd,compress=zstd,space_cache,commit=120"
 REPO=https://alpha.de.repo.voidlinux.org/current
 ARCH=x86_64

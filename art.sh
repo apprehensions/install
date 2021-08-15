@@ -21,10 +21,13 @@ sed '1,/^# - post$/d' $0 > /mnt/post.sh
 cp ./modules /mnt/ -r
 chmod a+x /mnt/post.sh
 artix-chroot /mnt ./post.sh
+cp ./mods /mnt/
 umount -R /mnt
 exit
 
 # - post
+
+source /mods
 
 ./modules/10-locale.sh
 ./modules/20-time.sh
