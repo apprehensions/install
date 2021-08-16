@@ -10,8 +10,6 @@ mkdir /mnt/efi
 mount -o rw,noatime $ESP /mnt/efi
 
 void_strap
-cp /etc/resolv.conf /mnt/etc/
-
 void_needed
 xbps_do
 
@@ -22,12 +20,19 @@ chroot /mnt ./post.sh
 umount -R /mnt
 exit
 
-# -post
-source /mods
+# - post
+. /mods
 
-grub_install
 void_sv_do
+xbps-install -y iwd openresolv
 ln -sv /etc/sv/iwd /etc/runit/runsvdir/default
+echo "[General]
+EnableNetworkConfiguration=true
+UseDefaultInterface=true
+
+[Network]
+EnableIPv6=true
+"
 void_make_me
 void_autologin
 rm /mods

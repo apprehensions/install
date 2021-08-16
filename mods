@@ -1,8 +1,6 @@
 # - UNIVERSAL -----------
 
-# - make the partitions specified by enviroment variables
 mkfs_part() {
-  	mkfs.vfat -nBOOP -F32 $ESP
   	mkfs.btrfs -L root -f $ROOT
 	mount -o $BTRFS_OPTS $ROOT /mnt
 	btrfs subvolume create /mnt/@
@@ -11,7 +9,27 @@ mkfs_part() {
 	mount -o $BTRFS_OPTS,subvol=@ $ROOT /mnt
 }
 
-# - CHROOT - install grub with 2 extra flags
+mkfs_esp() {
+  	mkfs.vfat -nBOOP -F32 $ESP
+	mkdir /mnt/$ESPDIR	
+	mount -o rw,noatime $ESP /mnt/$ESPDIR
+}
+
+iwd_do(){
+	mkdir -pv /mnt/etc/iwd
+	cat <<EOF > /mnt/etc/iwd/main.conf
+[General]
+EnableNetworkConfiguration=true
+UseDefaultInterface=true
+	
+[Network]
+EnableIPv6=true
+EOF
+}
+
+openrc_autologin(){ sed -i "agetty_options=/s/\"$/ --autologin wael --noclear&/" /etc/conf.d/agetty.tty1; }
+
+# - CHROOT 
 grub_install(){
 	grub-install --target=x86_64-efi --efi-directory=/efi --bootloader-id='Linux'
 	sed -i "/GRUB_CMDLINE_LINUX_DEFAULT=/s/\"$/ nowatchdog loglevel=5&/" /etc/default/grub
@@ -20,29 +38,14 @@ grub_install(){
 }
 
 # - ARCH-BASED ----------
-
-# - set /etc/hosts
 hosts_do(){
 	echo "127.0.0.1 localhost" >> /mnt/etc/hosts
 	echo "::1       localhost" >> /mnt/etc/hosts 
 	echo "127.0.1.1 $HOSTNAME.localdomain $HOSTNAME" >> /mnt/etc/hosts
 }
 
-# - set resolv.conf
-resolv_do(){
-	echo -e "nameserver 1.1.1.1\nnameserver 1.0.0.1" >> /mnt/etc/resolv.conf
-	echo -e "nameserver 2606:4700:4700::1111\nnameserver 2606:4700:4700::1001" >> /mnt/etc/resolv.conf
-}
-
-# - CHROOT - make me with 5 groups
-a_make_me(){
-	sed -i '82s/. //' /etc/sudoers
-	useradd -mG wheel,audio,video,kvm,storage -s /bin/zsh wael
-	passwd && passwd wael
-}
-
-# - CHROOT - set locale,hostname,timezone 
-a_needed() {
+# - CHROOT LINE
+arch_needed() {
 	echo "LANG=en_US.UTF-8" > /etc/locale.conf
 	echo "en_US.UTF-8 UTF-8" > /etc/locale.gen
 	echo $HOSTNAME > /etc/hostname
@@ -50,7 +53,6 @@ a_needed() {
 	hwclock --systohc
 }
 
-# - CHROOT - enable {colors,parallel,multilib} & install tools + aur helper
 pacman_do() {
 	sed -i '33s/.//' /etc/pacman.conf
 	sed -i -e '37s/.//' -e '37s/5/12/' /etc/pacman.conf
@@ -59,7 +61,6 @@ pacman_do() {
 	git clone https://aur.archlinux.org/paru-bin.git /usr/src/paru-bin && chmod 777 /usr/src/paru-bin
 }
 
-# - CHROOT - well get arch repos
 artix_archlinux_support_do() {
 	pacman --noconfirm -Sy artix-archlinux-support
 	echo -e "\n[extra]\nInclude = /etc/pacman.d/mirrorlist-arch" >> /etc/pacman.conf
@@ -67,31 +68,42 @@ artix_archlinux_support_do() {
 	echo -e "\n[multilib]\nInclude = /etc/pacman.d/mirrorlist-arch" >> /etc/pacman.conf
 }
 
-
-# - CHROOT - i don't know but its just to set KMS for i915
 i915_do(){
 	sed -i '7s/()/(i915)/' /etc/mkinitcpio.conf
+	echo "options i915 enable_guc=3 enable_fbc=1" > /etc/modprobe.d/i915.conf
+	mkinitcpio -P
 }
 
-
-
-# - CHROOT - UNUSED - install systemd-boot
-systemd-boot_install(){
-	echo -e "title   Arch Linux\nlinux   /vmlinuz-linux\ninitrd  /initramfs-linux.img" > /boot/loader/entries/arch.conf
-	echo "options rw root=UUID=$uuid_root nowatchdog loglevel=5" >> /boot/loader/entries/arch.conf
+uuid_root=$(blkid -o value -s UUID $ROOT)
+systemd_boot_install(){
+	bootctl install
+	cat <<EOF > /boot/loader/entries/arch.conf
+title   Arch Linux
+linux   /vmlinuz-linux
+initrd  /initramfs-linux.img
+options rw root=UUID=$uuid_root nowatchdog loglevel=5
+EOF
 	echo -e "timeout 5\nconsole-mode max" > /boot/loader/loader.conf
 }
 
-# - VOID ---------------
+arch_make_me(){
+	sed -i '82s/. //' /etc/sudoers
+	useradd -mG wheel,audio,video,kvm,storage -s /bin/zsh wael
+	passwd && passwd wael
+}
 
-# - STRAP - the pacstrap of void
+arch_autologin(){ 
+	mkdir /etc/systemd/system/getty@tty1.service.d
+	echo -e "[Service]\nExecStart=\nExecStart=-/usr/bin/agetty --noissue --autologin wael --noclear %I \$TERM" > /etc/systemd/system/getty@tty1.service.d/override.conf
+}
+
+# - VOID ---------------
 void_strap(){
 	XBPS_ARCH=x86_64
 	REPO=https://alpha.de.repo.voidlinux.org/current
-	XBPS_ARCH=$ARCH xbps-install -Sy -r /mnt -R $REPO base-system base-devel btrfs-progs grub-x86_64-efi socklog-unix
+	XBPS_ARCH=$ARCH xbps-install -Sy -r /mnt -R $REPO base-system base-devel btrfs-progs grub-x86_64-efi socklog-void
 }
 
-# - set locale,hostname,rc.conf,fstab
 void_needed(){
 	echo LANG=en_US.UTF-8 > /mnt/etc/locale.conf
 	echo "en_US.UTF-8 UTF-8" >> /mnt/etc/default/libc-locales
@@ -106,27 +118,30 @@ EOF
 	chroot /mnt xbps-reconfigure -f glibc-locales
 }
 
-# - CHROOT - get multilib-{nonfree},nonfree & install tools
+# - CHROOT LINE
 xbps_do(){
 	xbps-install -Syu void-repo-nonfree void-repo-multilib void-repo-multilib-nonfree
-	xbps-install -Sy intel-ucode zsh zsh-syntax-highlighting wget git exa 
+	xbps-install -Sy intel-ucode zsh zsh-syntax-highlighting wget git
 }
 
-# - CHROOT - void services that are needed
 void_sv_do(){
 	ln -sv /etc/sv/dbus /etc/runit/runsvdir/default
 	ln -sv /etc/sv/nanoklogd /etc/runit/runsvdir/default
 	ln -sv /etc/sv/socklog-unix /etc/runit/runsvdir/default
 }
 
-# - CHROOT - make me with 7 groups for void for some reason
 void_make_me(){
 	sed -i '82s/.//' /etc/sudoers
 	useradd -m -G wheel,input,audio,video,kvm,storage,socklog -s /bin/zsh wael
 	passwd wael && passwd
 }
 
-# - AUTOLOGIN -----------
-openrc_autologin(){ sed -i "agetty_options=/s/\"$/ --autologin wael --noclear&/" /etc/conf.d/agetty.tty1; }
-arch_autologin(){ mkdir /etc/systemd/system/getty@tty1.service.d && echo -e "[Service]\nExecStart=\nExecStart=-/usr/bin/agetty --noissue --autologin wael --noclear" > /etc/systemd/system/getty@tty1.service.d/override.conf; }
 void_autologin(){ sed -i "/GETTY_ARGS=/s/\"$/ --autologin wael&/" /etc/sv/agetty-tty1/conf; }
+
+# - POST INSTALL
+post_install_goodbye(){
+	rm /mods
+	rm /post.sh
+	echo "your install is done now go outside"
+}
+
