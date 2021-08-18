@@ -26,13 +26,7 @@ exit
 void_sv_do
 xbps-install -y iwd openresolv
 ln -sv /etc/sv/iwd /etc/runit/runsvdir/default
-echo "[General]
-EnableNetworkConfiguration=true
-UseDefaultInterface=true
-
-[Network]
-EnableIPv6=true
-"
+iwd_do
 void_make_me
 void_autologin
 rm /mods
