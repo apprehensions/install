@@ -1,14 +1,13 @@
 #!/bin/bash
-export BTRFS_OPTS="rw,noatime,ssd,compress=zstd,space_cache,commit=120"
-export ROOT="/dev/sda2"
-export ESP="/dev/sda1"
-export DIST=arch
-export PLAT=pc
-export HOSTNAME=br
+export BTRFS_OPTS="rw,relatime,ssd,compress=zstd,space_cache,commit=120"
+export ROOT="/dev/nvme0n1p2"
+export ESP="/dev/nvme0n1p1"
+export ESPDIR="/boot"
+export HOSTNAME="br"
+source ./mods
 
-./modules/01-disk.sh
-mkdir /mnt/boot
-mount -o rw,noatime $ESP /mnt/boot
+mkfs_root
+mkfs_esp
 
 reflector --verbose --latest 5 --sort rate --save /etc/pacman.d/mirrorlist
 sed -ibak -e '37s/.//' -e '37s/5/24/' /etc/pacman.conf
@@ -20,18 +19,19 @@ genfstab -U /mnt >> /mnt/etc/fstab
 
 sed '1,/^# - post$/d' $0 > /mnt/post.sh
 chmod a+x /mnt/post.sh
+cp ./mods /mnt/
 arch-chroot /mnt ./post.sh
 umount -R /mnt
 exit
 
 # - post
-./modules/10-needed.sh
-./modules/30-pkg.sh
-./modules/31-vid.sh
-./modules/40-boot.sh
-./modules/51-net.sh
+source /mods
+
+arch_needed
+pacman_do
+systemd_boot_install
 echo -e "[Match]\nName=eno1\n\n[Network]\nDHCP=yes" > /etc/systemd/network/lan.network
 systemctl enable systemd-networkd
-./modules/99-user.sh
-rm /modules -rf
-rm /post.sh
+arch_make_me
+arch_autologin
+post_install_goodbye
