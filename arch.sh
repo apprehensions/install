@@ -27,11 +27,24 @@ exit
 # - post
 source /mods
 
-arch_needed
-pacman_do
-systemd_boot_install
-echo -e "[Match]\nName=eno1\n\n[Network]\nDHCP=yes" > /etc/systemd/network/lan.network
+clear && arch_needed
+
+# pkg
+clear && pacman_do
+clear && arch_reflector
+
+# bootloader
+clear && systemd_boot_install
+
+# host related
+blacklist_pc
+
+# service
+clear && echo -e "[Match]\nName=eno2\n\n[Network]\nDHCP=yes" > /etc/systemd/network/lan.network
 systemctl enable systemd-networkd
-arch_make_me
-arch_autologin
-post_install_goodbye
+
+# user
+clear && arch_useradd
+systemd_autologin
+
+clear && post_install_goodbye

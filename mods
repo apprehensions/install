@@ -27,7 +27,14 @@ EnableIPv6=true
 EOF
 }
 
-openrc_autologin(){ sed -i "agetty_options=/s/\"$/ --autologin wael --noclear&/" /etc/conf.d/agetty.tty1; }
+blacklist_pc(){echo "blacklist i2c_nvidia_gpu\nblacklist iTCO_wdt" > /etc/modprobe.d/blacklist.conf }
+blacklist_laptop(){
+	sed -i '7s/()/(i915)/' /etc/mkinitcpio.conf
+	echo "options i915 enable_guc=3 enable_fbc=1" > /etc/modprobe.d/i915.conf
+	mkinitcpio -P
+}
+
+openrc_autologin(){sed -i "agetty_options=/s/\"$/ --autologin wael --noclear&/" /etc/conf.d/agetty.tty1}
 
 # - CHROOT 
 grub_install(){
@@ -68,12 +75,6 @@ artix_archlinux_support_do() {
 	echo -e "\n[multilib]\nInclude = /etc/pacman.d/mirrorlist-arch" >> /etc/pacman.conf
 }
 
-i915_do(){
-	sed -i '7s/()/(i915)/' /etc/mkinitcpio.conf
-	echo "options i915 enable_guc=3 enable_fbc=1" > /etc/modprobe.d/i915.conf
-	mkinitcpio -P
-}
-
 uuid_root=$(blkid -o value -s UUID $ROOT)
 systemd_boot_install(){
 	bootctl install
@@ -86,15 +87,26 @@ EOF
 	echo -e "timeout 5\nconsole-mode max" > /boot/loader/loader.conf
 }
 
-arch_make_me(){
+arch_useradd(){
 	sed -i '82s/. //' /etc/sudoers
 	useradd -mG wheel,audio,video,kvm,storage -s /bin/zsh wael
 	passwd && passwd wael
 }
 
-arch_autologin(){ 
+systemd_autologin(){ 
 	mkdir /etc/systemd/system/getty@tty1.service.d
 	echo -e "[Service]\nExecStart=\nExecStart=-/usr/bin/agetty --noissue --autologin wael --noclear %I \$TERM" > /etc/systemd/system/getty@tty1.service.d/override.conf
+}
+
+arch_reflector(){
+	pacman --noconfirm -Sy reflector
+	mkdir -pv /etc/xdg/reflector
+	cat <<EOF > /etc/xdg/reflector/reflector.conf
+--save /etc/pacman.d/mirrorlist
+--latest 5
+--sort rate
+EOF
+	systemctl enable reflector.service
 }
 
 # - VOID ---------------
@@ -130,7 +142,7 @@ void_sv_do(){
 	ln -sv /etc/sv/socklog-unix /etc/runit/runsvdir/default
 }
 
-void_make_me(){
+void_useradd(){
 	sed -i '82s/.//' /etc/sudoers
 	useradd -m -G wheel,input,audio,video,kvm,storage,socklog -s /bin/zsh wael
 	passwd wael && passwd
