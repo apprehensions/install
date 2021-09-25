@@ -1,16 +1,12 @@
-# - UNIVERSAL -----------
 
-mkfs_part() {
-  	mkfs.btrfs -L root -f $ROOT
+mkfs_root() {
+	mkfs.btrfs -L root -f $ROOT
 	mount -o $BTRFS_OPTS $ROOT /mnt
-	btrfs subvolume create /mnt/@
-	btrfs subvolume set-default /mnt/@
-	umount /mnt
-	mount -o $BTRFS_OPTS,subvol=@ $ROOT /mnt
 }
 
 mkfs_esp() {
-  	mkfs.vfat -nBOOP -F32 $ESP
+	mkfs.vfat -nBOOP -F32 $ESP
+	echo -e "t\n1\n1\nw" | fdisk /dev/sda
 	mkdir /mnt/$ESPDIR	
 	mount -o rw,noatime $ESP /mnt/$ESPDIR
 }
@@ -64,8 +60,7 @@ pacman_do() {
 	sed -i '33s/.//' /etc/pacman.conf
 	sed -i -e '37s/.//' -e '37s/5/12/' /etc/pacman.conf
 	sed -i '93,94s/.//' /etc/pacman.conf
-	pacman --noconfirm -Sy wget git zsh exa zsh-syntax-highlighting 
-	git clone https://aur.archlinux.org/paru-bin.git /usr/src/paru-bin && chmod 777 /usr/src/paru-bin
+	pacman --noconfirm -Sy wget git zsh
 }
 
 artix_archlinux_support_do() {
