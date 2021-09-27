@@ -1,0 +1,86 @@
+mkrm() {
+    mkfs.btrfs -L root -f $ROOT
+    mount -o rw,noatime,ssd,compress=zstd,space_cache $ROOT /mnt
+}
+
+mkespm() {
+    mkfs.vfat -nBOOP -F32 $ESP
+    bash
+    mkdir -pv /mnt/boot	
+    mount -o rw,noatime $ESP /mnt/boot
+}
+
+echo_host_related() {
+    echo $HOSTNAME > /mnt/etc/hostname
+    echo "127.0.0.1 localhost" >> /mnt/etc/hosts
+    echo "::1       localhost" >> /mnt/etc/hosts 
+    echo "127.0.1.1 $HOSTNAME.localdomain $HOSTNAME" >> /mnt/etc/hosts
+}
+
+c_nvidia_modules() {
+    echo "blacklist i2c_nvidia_gpu" > /etc/modprobe.d/blacklist.conf 
+    echo "blacklist iTCO_wdt" >> /etc/modprobe.d/blacklist.conf 
+    echo "options nvidia-drm modeset=1" > /etc/modprobe.d/nvidia-drm.conf 
+    sed -i '7s/()/(nvidia nvidia_modeset nvidia_uvm nvidia_drm)/' /etc/mkinitcpio.conf
+    mkinitcpio -P
+}
+
+cat_eof_systemd_networkd_lan_conf() {
+    cat <<EOF > /mnt/etc/systemd/network/lan.network
+[Match]
+Name=eno2
+
+[Network]
+DHCP=yes
+EOF 
+}
+
+cat_eof_iwd_main_conf() {
+    mkdir -pv /mnt/etc/iwd
+    cat <<EOF > /mnt/etc/iwd/main.conf
+[General]
+UseDefaultInterface=true
+EOF
+}
+
+sed_pacman_conf() {
+	sed -i '33s/.//' /mnt/etc/pacman.conf
+	sed -i -e '37s/.//' -e '37s/5/12/' /mnt/etc/pacman.conf
+	sed -i '93,94s/.//' /mnt/etc/pacman.conf
+}
+
+c_useradd_wael() {
+    sed -i '82s/. //' /etc/sudoers
+    useradd -mG wheel,audio,video,kvm,storage -s /bin/zsh wael
+    passwd && passwd wael 
+}
+
+c_locale_set() {
+    echo "LANG=en_US.UTF-8" > /etc/locale.conf
+    echo "en_US.UTF-8 UTF-8" > /etc/locale.gen
+    locale-gen
+}
+
+c_clock() {
+    ln -sf /usr/share/zoneinfo/Asia/Riyadh /etc/localtime
+    hwclock --systohc
+}
+
+c_grub_install() {
+    grub-install --target=x86_64-efi --efi-directory=/boot --bootloader-id=grub
+    grub-mkconfig -o /boot/grub/grub.cfg
+}
+
+c_artix_archlinux_support() {
+	pacman --noconfirm -Sy artix-archlinux-support reflector
+	echo -e "\n[extra]\nInclude = /etc/pacman.d/mirrorlist-arch" >> /etc/pacman.conf
+	echo -e "\n[community]\nInclude = /etc/pacman.d/mirrorlist-arch" >> /etc/pacman.conf
+	echo -e "\n[multilib]\nInclude = /etc/pacman.d/mirrorlist-arch" >> /etc/pacman.conf
+    reflector --verbose --latest 5 --sort rate --save /etc/pacman.d/mirrorlist-arch
+}
+
+post_install_goodbye(){
+	rm /modules
+	rm /post-install.sh
+	echo "your install is done now go outside"
+}
