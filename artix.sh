@@ -18,16 +18,9 @@ fstabgen -U /mnt >> /mnt/etc/fstab
 
 echo_host_related
 sed_pacman_conf
-cat_eof_iwd_main_conf
+post_chroot artix
 
-sed '1,/^# - post$/d' $0 > /mnt/post-install.sh
-cp modules /mnt/
-chmod a+x /mnt/post-install.sh
-artix-chroot /mnt ./post-install.sh
-umount -R /mnt
-post_install_goodbye
-exit
-
+# - ====
 # - post
 source /modules
 c_locale_set
@@ -40,6 +33,6 @@ pacman --noconfirm -Sy zsh terminus-font grub os-prober efibootmgr \
 
 s6-rc-bundle-update add default iwd dhcpcd
 
+c_modk
 c_grub_install
-c_nvidia_modules
 c_useradd_wael
