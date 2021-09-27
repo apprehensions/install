@@ -35,7 +35,7 @@ c_clock
 c_artix_archlinux_support
 
 pacman --noconfirm -Sy zsh terminus-font grub os-prober efibootmgr \
-											 nvidia-dkms nvidia-utils nvidia-settings lib32-nvidia-utils \
+                       nvidia-dkms nvidia-utils nvidia-settings lib32-nvidia-utils \
                        dhcpcd-s6 iwd-s6
 
 s6-rc-bundle-update add default iwd dhcpcd
