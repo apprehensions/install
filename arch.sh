@@ -55,7 +55,7 @@ hwclock --systohc
 sed -i '33s/.//' /etc/pacman.conf
 sed -i -e '37s/.//' -e '37s/5/12/' /etc/pacman.conf
 sed -i '93,94s/.//' /etc/pacman.conf
-pacman --noconfirm -Sy zsh terminus-font  \
+pacman --noconfirm -Sy zsh terminus-font iwd \
                        nvidia-dkms nvidia-utils nvidia-settings 
 
 cat <<EOF > /etc/systemd/network/lan.network
