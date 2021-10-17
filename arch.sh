@@ -11,8 +11,8 @@ mount -o rw,noatime,ssd,compress=zstd,space_cache $ROOT /mnt
 
 mkfs.vfat -F32 -n "BOOP" $ESP
 echo -e "t\n1\nef\nw" | fdisk /dev/sda
-mkdir -pv /mnt/boot	
-mount -t vfat -o noatime $ESP /mnt/boot
+mkdir -pv /mnt/efi	
+mount -t vfat -o noatime $ESP /mnt/efi
 
 # get 32 servers synced in the last 48 hours, get the fastest 6
 reflector -a 48 -l 32 -f 6 --verbose --sort rate --save /etc/pacman.d/mirrorlist
