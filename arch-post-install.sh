@@ -12,7 +12,7 @@ sed -i -e '37s/.//' -e '37s/5/64/' /etc/pacman.conf
 sed -i '93,94s/.//' /etc/pacman.conf
 
 # packages
-pacman --noconfirm -Sy zsh terminus-font iwd nvidia-dkms nvidia-utils nvidia-settings lib32-nvidia-utils 
+pacman --noconfirm -Sy zsh terminus-font iwd 
 
 # vconsole font
 echo "FONT=ter-v18n" > /etc/vconsole.conf
@@ -41,5 +41,5 @@ mkdir /etc/systemd/system/getty@tty1.service.d
 cat <<EOF > /etc/systemd/system/getty@tty1.service.d/override.conf 
 [Service]
 ExecStart=
-ExecStart=-/usr/bin/agetty --noissue --autologin wael --noclear %I \$TERM"
+ExecStart=-/usr/bin/agetty --autologin wael --noclear %I \$TERM"
 EOF

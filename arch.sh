@@ -20,23 +20,17 @@ reflector -a 48 -l 32 -f 6 --verbose --sort rate --save /etc/pacman.d/mirrorlist
 # set parallel downloads (line 37) to 64, and create a backup
 sed -ibak -e '37s/.//' -e '37s/5/64/' /etc/pacman.conf
 
-pacstrap /mnt linux linux-firmware base base-devel btrfs-progs 
+pacstrap /mnt linux linux-firmware base base-devel btrfs-progs grub efibootmgr
 
-# move back to backup 
 mv /etc/pacman.confbak /etc/pacman.conf
 cp /etc/pacman.d/mirrorlist /mnt/etc/pacman.d/
 cp arch-post-install.sh /mnt/
 genfstab -U /mnt >> /mnt/etc/fstab
 
-bootctl install --esp-path=/mnt/boot
-cat <<EOF > /mnt/boot/loader/entries/arch.conf
-title   Arch Linux
-linux   /vmlinuz-linux
-initrd  /initramfs-linux.img
-options rw root=$ROOT quiet splash
-EOF
-echo -e "timeout 5\nconsole-mode max" > /mnt/boot/loader/loader.conf
+arch-chroot /mnt grub-install --target=x86_64-efi --efi-directory=/efi --bootloader-id=grub
+arch-chroot /mnt grub-mkconfig -o /boot/grub/grub.cfg
 
+# networking, needed for first time setup
 arch-chroot /mnt cat <<EOF > /etc/systemd/network/eno2.network
 [Match]
 Name=eno2
@@ -45,5 +39,6 @@ Name=eno2
 DHCP=yes
 EOF 
 arch-chroot /mnt systemctl enable systemd-networkd
+
 arch-chroot /mnt passwd
 echo -e "ready for first boot! :DD"
