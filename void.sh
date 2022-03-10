@@ -47,13 +47,13 @@ permit persist wael
 EOL
 
 # repos, ucode, reconfigure, set mirrors
-echo "kernel_cmdline=\" root=UUID=$(blkid $ROOT -s UUID -o value) rw quiet\"" > /etc/dracut.conf.d/cmdline
+echo "kernel_cmdline=\" root=UUID=$(blkid $ROOT -s UUID -o value) rw quiet\"" > /mnt/etc/dracut.conf.d/cmdline
 xbps-install -Sy -r /mnt -R $REPO void-repo-nonfree void-repo-multilib void-repo-multilib-nonfree
 xbps-reconfigure -r /mnt -fa
-gummiboot install
-echo "console-mode max" >> /boot/loader/loader.conf
+chroot /mnt gummiboot install
+echo "console-mode max" >> /mnt/boot/loader/loader.conf
 mkdir -p /mnt/etc/xbps.d
 cp /mnt/usr/share/xbps.d/*-repository-*.conf /mnt/etc/xbps.d/
-sed -i "s|https://alpha.de.repo.voidlinux.org|$REPO|g" /etc/xbps.d/*-repository-*.conf
+sed -i "s|https://alpha.de.repo.voidlinux.org|$REPO|g" /mnt/etc/xbps.d/*-repository-*.conf
 
 
