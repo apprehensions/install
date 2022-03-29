@@ -43,50 +43,29 @@ omit_dracutmodules+=" bash terminfo "
 nofscks=yes
 EOCONF
 
-cat > /mnt/usr/bin/splash << EOSPLSH
-#!/bin/sh
-tput reset
-tput cup 9999 0
-
-echo 'q' | fbv -ice /etc/splash.png
-EOSPLSH
-chmod +x /mnt/usr/bin/splash
-echo '/usr/bin/splash' >> /mnt/etc/runit/core-services/03-console-setup.sh 
-
 cat > /mnt/etc/rc.conf << EORCCONF
 # /etc/rc.conf - system configuration for void
-
-# Set the host name.
 HOSTNAME="$HOSTNAMESTRAP"
-
-# Set RTC to UTC or localtime.
+# RTC, UTC, localtime.
 HARDWARECLOCK="UTC"
-
-# Set timezone, availables timezones can be found at /usr/share/zoneinfo.
 TIMEZONE="Asia/Riyadh"
-
-# Keymap to load, see loadkeys(8).
 KEYMAP="us"
-
-# Fonts, see setfont(8).
 FONT="ter-v12n"
-#FONT_MAP=
-#FONT_UNIMAP=
-
-# Amount of ttys which should be setup.
 #TTYS=
-
-# Set the mode for cgroup mounts.
-# hybrid: mount cgroup v1 under /sys/fs/cgroup and
-#         cgroup v2 under /sys/fs/cgroup/unified
-# legacy: mount cgroup v1 /sys/fs/cgroup
-# unified: mount cgroup v2 under /sys/fs/cgroup
+# hybrid, legacy, unified.
 CGROUP_MODE=hybrid
 EORCCONF
 
 # xbps
 xbps-install -Sy -r /mnt -R $REPO/current void-repo-{multilib{,-nonfree},nonfree}
 mkdir -p /mnt/etc/xbps.d
+cat > /mnt/etc/xbps.d/99-ignore.conf << EOIGNORE
+ignorepkg=linux-headers
+ignorepkg=linux
+ignorepkg=linux-firmware-amd
+ignorepkg=linux-firmware-broadcom
+EOIGNORE
+xbps-remove linux-firmware-{amd,broadcom} linux linux-headers
 cp /mnt/usr/share/xbps.d/*-repository-*.conf /mnt/etc/xbps.d/
 sed -i "s|https://alpha.de.repo.voidlinux.org|$REPO|g" /mnt/etc/xbps.d/*-repository-*.conf
 xbps-reconfigure -r /mnt -fa
