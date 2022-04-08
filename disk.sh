@@ -20,6 +20,10 @@ make() {
 }
 
 mount() {
-  mount -o noatime      $ESP  /mnt/$ESP_DIR
   mount -o $BTRFS_FLAGS $ROOT /mnt
+  mkdir -pv /mnt/boot
+  mount -o noatime $ESP /mnt/boot
 }
+
+echo "make, mount, disk"
+$1
