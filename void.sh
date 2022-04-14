@@ -2,14 +2,14 @@
 source vars.conf
 set -xe
 
-export REPO=https://void.cijber.net
+export REPO=https://mirrors.dotsrc.org/voidlinux/current
 export ARCH=x86_64
-XBPS_ARCH=$ARCH xbps-install -S -r /mnt -R $REPO/current \
+XBPS_ARCH=$ARCH xbps-install -S -r /mnt -R $REPO \
   "base-minimal" "linux-mainline" "linux-mainline-headers" \
-  "btrfs-progs" "dosfstools" "gummiboot" \
+  "btrfs-progs" "dosfstools" "gummiboot" "socklog-unix" \
   "pciutils" "usbutils" "xtools" "git" "iproute2" "iputils" \
-  "ncurses" "libgcc" "file" "man" "man-pages" "kbd" \
-  "rtkit" "dbus" "seatd" "dhcpcd" "bluez"
+  "ncurses" "libgcc" "file" "man" "man-pages" "kbd" "dumb_runtime_dir" \
+  "rtkit" "dbus" "seatd" "dhcpcd" "bluez" "acpid" "zsh" "opendoas"
 
 # disk
 for mount in sys dev proc; do
@@ -18,22 +18,21 @@ done
 
 chmod +x genfstab
 cp -v genfstab /mnt/usr/bin/
-genfstab -U /mnt >> /mnt/etc/fstab
+./genfstab -U /mnt >> /mnt/etc/fstab
 
 # services
-for sv in dbus rtkit seatd acpid dhcpcd bluetoothd; do
+for sv in dbus rtkit seatd acpid dhcpcd bluetoothd socklog-unix nanoklogd; do
   chroot /mnt ln -sfv /etc/sv/$sv /etc/runit/runsvdir/default
 done
 
 # user & {root,user} password
-useradd -R /mnt -mG audio,video,input,kvm,bluetooth,_seatd,rtkit -s /bin/zsh wael
+useradd -R /mnt -mG audio,video,input,kvm,bluetooth,socklog,_seatd,rtkit -s /bin/zsh wael
 echo "wael:$USERPASSWD" | chpasswd -R /mnt -c SHA512
 echo "root:$ROOTPASSWD" | chpasswd -R /mnt -c SHA512
 # autologin
 sed -i "/GETTY_ARGS=/s/\"$/ --autologin wael&/" /mnt/etc/sv/agetty-tty1/conf
 
 # doas
-xbps-install -y -r /mnt -R $REPO/current opendoas
 cat > /mnt/etc/doas.conf << EOCONF
 permit wael
 permit persist wael
@@ -43,9 +42,12 @@ EOCONF
 # other: glibc locales, hostname, user dmesg read, install bootloader, {dracut,rc} conf
 sed -i '/^#en_US.UTF-8/s/.//' /mnt/etc/default/libc-locales
 echo "$HOSTNAMESTRAP" > /mnt/etc/hostname
-echo "kernel.dmesg_restrict=1" > /mnt/etc/sysctl.d/10-dmesg-user.conf
+mkdir -pv /mnt/etc/sysctl.d
+echo "kernel.dmesg_restrict=0" > /mnt/etc/sysctl.d/10-dmesg-user.conf
+echo "nameserver 192.168.1.1" > /mnt/etc/resolv.conf
 chroot /mnt gummiboot install
 echo "rw loglevel=4 mitigations=off" > /mnt/boot/loader/void-options.conf
+echo "session   optional   pam_dumb_runtime_dir.so" >> /mnt/etc/pam.d/system-login
 
 cat > /mnt/etc/dracut.conf.d/options.conf << EODRACUTCONF
 hostonly=yes
@@ -95,9 +97,9 @@ EOIGNORE
 xbps-remove -y -r /mnt linux-firmware-{amd,broadcom} linux linux-headers
 
 # repos
-xbps-install -Sy -r /mnt -R $REPO/current void-repo-{multilib{,-nonfree},nonfree}
+xbps-install -Sy -r /mnt -R $REPO void-repo-{multilib{,-nonfree},nonfree}
 cp /mnt/usr/share/xbps.d/*-repository-*.conf /mnt/etc/xbps.d/
-sed -i "s|https://alpha.de.repo.voidlinux.org|$REPO|g" /mnt/etc/xbps.d/*-repository-*.conf
+sed -i "s|https://alpha.de.repo.voidlinux.org/current|$REPO|g" /mnt/etc/xbps.d/*-repository-*.conf
 
 # post
 xbps-reconfigure -r /mnt -fa
