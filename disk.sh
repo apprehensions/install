@@ -1,4 +1,4 @@
-#!/usr/bin/env sh
+#!/usr/bin/env -S bash -xe
 source vars.conf
 
 disk() {
@@ -13,15 +13,15 @@ disk() {
 }
 
 make() {
-  mkfs.vfat -F 32 -n "ESP" $ESP
-  mkfs.btrfs -L "EPHEMERA" -f $ROOT
+  mkfs.vfat -F 32 -n ESP $ESP
+  mkfs.btrfs -L ${HOSTNAMESTRAP^^} -f $ROOT
   sgdisk -t $ESPN:ef00 $DISK
   sgdisk -t $ROOTN:8300 $DISK
 }
 
 mount() {
-  mount -o $BTRFS_FLAGS $ROOT /mnt
   mkdir -pv /mnt/boot
+  mount -o $BTRFS_FLAGS $ROOT /mnt
   mount -o noatime $ESP /mnt/boot
 }
 
