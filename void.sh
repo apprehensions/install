@@ -1,7 +1,7 @@
 #!/usr/bin/env -S bash -xe
 source vars.conf
 
-export REPO=https://mirrors.dotsrc.org/voidlinux/current
+export REPO=https://void.cijber.net/current
 export ARCH=x86_64
 XBPS_ARCH=$ARCH xbps-install -S -r /mnt -R $REPO \
   base-minimal linux-mainline{,-headers} kbd \
