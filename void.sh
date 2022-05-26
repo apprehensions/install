@@ -4,7 +4,7 @@ source vars.conf
 export REPO=https://void.cijber.net/current
 export ARCH=x86_64
 XBPS_ARCH=$ARCH xbps-install -S -r /mnt -R $REPO \
-  base-minimal linux-mainline{,-headers} kbd \
+  base-minimal base-devel linux-mainline{,-headers} kbd \
   btrfs-progs dosfstools gummiboot pciutils usbutils iproute2 \
   socklog-void xtools git ncurses libgcc file man{,-pages} \
   dumb_runtime_dir dhcpcd opendoas zsh acpid
