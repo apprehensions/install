@@ -10,6 +10,7 @@ XBPS_ARCH=$ARCH xbps-install -S -r /mnt -R $REPO \
   dumb_runtime_dir dhcpcd opendoas zsh acpid
 
 ## neccessary mounting for literally anything
+mount -t efivarfs efivarfs /sys/firmware/efi/efivars
 for mount in sys dev proc; do
   mount --rbind /$mount /mnt/$mount && mount --make-rslave /mnt/$mount
 done
