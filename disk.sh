@@ -1,29 +1,13 @@
 #!/usr/bin/env -S bash -xe
-source vars.conf
-
-disk() {
-  # zap all on disk, idk why lol
-  sgdisk -Z $DISK
-  # create gpt table with sector size 2048
-  sgdisk -a 2048 -o $DISK
-  # created partition 512M at the start of the disk
-  sgdisk -n 1:0:+512M $DISK
-  # partition with the rest of the disk
-  sgdisk -n 2:0:0 $DISK
-}
-
-make() {
-  mkfs.vfat -F 32 -n ESP $ESP
-  mkfs.btrfs -L ${HOSTNAMESTRAP^^} -f $ROOT
-  sgdisk -t $ESPN:ef00 $DISK
-  sgdisk -t $ROOTN:8300 $DISK
-}
-
-mount() {
-  mkdir -pv /mnt/boot
-  mount -o $BTRFS_FLAGS $ROOT /mnt
-  mount -o noatime $ESP /mnt/boot
-}
-
-echo "make, mount, disk"
-$1
+_disk=/dev/sda
+sgdisk -Z ${_disk}
+sgdisk -a 2048 -o ${_disk}
+sgdisk -n 1:0:+512M ${_disk} # /dev/sda1
+sgdisk -n 2:0:0 ${_disk} # /dev/sda2
+mkfs.vfat -F 32 -n ESP ${_disk}1
+mkfs.btrfs -L EPHEMERA -f ${_disk}2
+sgdisk -t 1:ef00 ${_disk} 
+sgdisk -t 2:8300 ${_disk} 
+mount -o rw,noatime,ssd,compress-force=zstd:1 ${_disk}2 /mnt
+mkdir -pv /mnt/boot
+mount -o noatime ${_disk}1 /mnt/boot
