@@ -1,5 +1,5 @@
 #!/usr/bin/env -S bash -xe
-export REPO=https://mirror.fit.cvut.cz/voidlinux/
+export REPO=https://mirror.fit.cvut.cz/voidlinux/current
 export ARCH=x86_64
 XBPS_ARCH=$ARCH xbps-install -S -r /mnt -R $REPO \
   base-minimal base-devel linux-mainline{,-headers} kbd \
@@ -17,13 +17,13 @@ done
 chmod +x genfstab
 cp -v genfstab /mnt/usr/bin/
 ./genfstab -L /mnt >> /mnt/etc/fstab
-useradd -R /mnt -mG audio,video,input,kvm,socklog,plugdev,bluetooth -s /bin/zsh wael
+useradd -R /mnt -mG audio,video,input,kvm,socklog,plugdev -s /bin/zsh wael
 echo "wael:meow" | chpasswd -R /mnt -c SHA512
 echo "root:meow" | chpasswd -R /mnt -c SHA512
-echo ephemera > /etc/hostname
+echo ephemera > /mnt/etc/hostname
 chroot /mnt ln -sf /usr/share/zoneinfo/Asia/Riyadh /etc/localtime
 sed -i "/GETTY_ARGS=/s/\"$/ --autologin wael&/" /mnt/etc/sv/agetty-tty1/conf
-printf '%s\n%s' 'permit persist wael' 'permit nopass wael cmd xbps-install' > /mnt/etc/doas.conf
+printf '%s\n%s\n' 'permit persist wael' 'permit nopass wael cmd xbps-install' > /mnt/etc/doas.conf
 sed -i '/^.*pam_dumb_runtime.*/s/.//' /mnt/etc/pam.d/system-login
 sed -i '/^#en_US.UTF-8/s/.//' /mnt/etc/default/libc-locales
 echo "nameserver 192.168.1.1" > /mnt/etc/resolv.conf
@@ -35,8 +35,8 @@ echo "kernel.dmesg_restrict=0" > /mnt/etc/sysctl.d/99-dmesg-user.conf
 chroot /mnt gummiboot install
 echo "rw loglevel=3 splash quiet mitigations=off" > /mnt/boot/loader/void-options.conf
 mkdir -p /mnt/etc/xbps.d
-cp /mnt/usr/share/xbps.d/*-repository-*.conf /mnt/etc/xbps.d/
 xbps-install -Sy -r /mnt -R $REPO void-repo-{multilib{,-nonfree},nonfree}
+cp /mnt/usr/share/xbps.d/*-repository-*.conf /mnt/etc/xbps.d/
 sed -i "s|https://repo-default.voidlinux.org|$REPO|g" /mnt/etc/xbps.d/*-repository-*.conf
 printf "%s\n" ignorepkg=linux{,-headers,-firmware-{amd,broadcom}} > /mnt/etc/xbps.d/99-ignore.conf
 xbps-remove -y -r /mnt linux{,-headers,-firmware-{amd,broadcom}}
