@@ -8,6 +8,6 @@ mkfs.vfat -F 32 -n ESP ${_disk}1
 mkfs.btrfs -L EPHEMERA -f ${_disk}2
 sgdisk -t 1:ef00 ${_disk} 
 sgdisk -t 2:8300 ${_disk} 
-mount -o rw,noatime,ssd,compress-force=zstd:1 ${_disk}2 /mnt
+mount -o rw,noatime,ssd,space_cache=v2,discard=async ${_disk}2 /mnt
 mkdir -pv /mnt/boot
 mount -o noatime ${_disk}1 /mnt/boot
